@@ -442,8 +442,15 @@ namespace PeLib
 		word magic = pef.peHeader().getMagic();
 
 		// jk2012-02-20: make the PEFILE32 be the default return value
+		// ARM64 (0xAA64) is a PE32+ machine; without it in this list the
+		// PE32+ image is parsed as PEFILE32 and the dword ImageBase read at
+		// optional-header offset 28 lands on the HIGH dword of the real
+		// 8-byte ImageBase (0x0000000140000000 -> 1), shifting every VA by +1
+		// and misaligning the entry-point decode (ARM64 instructions are
+		// 4-byte aligned).
 		if ((machine == PELIB_IMAGE_FILE_MACHINE_AMD64
-					|| machine == PELIB_IMAGE_FILE_MACHINE_IA64)
+					|| machine == PELIB_IMAGE_FILE_MACHINE_IA64
+					|| machine == PELIB_IMAGE_FILE_MACHINE_ARM64)
 				&& magic == PELIB_IMAGE_NT_OPTIONAL_HDR64_MAGIC)
 		{
 			return PEFILE64;
